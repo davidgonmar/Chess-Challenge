@@ -14,10 +14,11 @@ public sealed class MyBot : IChessBot
     private const int TT_ENTRIES = (1 << 20);
 
     enum TTFlag
-    {
-        Upper, // Fail low (the entry score is an upper bound). This means no value better than alpha was found
-        Lower, // Fail high (the entry score is a lower bound). This means a value better than beta was found
-        Exact  // The entry score is an exact value, so the value was between alpha and beta
+    {   
+        Invalid,// Represents uninitialized TTEntry
+        Upper,  // Fail low (the entry score is an upper bound). This means no value better than alpha was found
+        Lower,  // Fail high (the entry score is a lower bound). This means a value better than beta was found
+        Exact   // The entry score is an exact value, so the value was between alpha and beta
     }
 
     // Transposition table entries
@@ -201,9 +202,10 @@ public sealed class MyBot : IChessBot
 
         // Push bestEval to TT. Replace by depth (replace only if the depth is better)
         var existingTTEntry = transpositionTable[zobristKey % TT_ENTRIES];
-        if (existingTTEntry.depth < depth && existingTTEntry.key == zobristKey)
+        
+        // Check if either depth is enough to replace OR the entry is not initialized (flag = 0 for uninitialized entries in the array)
+        if ((existingTTEntry.depth < depth && existingTTEntry.key == zobristKey) || existingTTEntry.flag == TTFlag.Invalid)
         {
-
             transpositionTable[zobristKey % TT_ENTRIES] = new TTEntry(zobristKey, depth, bestEval, ttFlag);
         }
 
